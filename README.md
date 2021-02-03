@@ -31,4 +31,8 @@ Finally, to train the model that combines CF and genre data using contrastive le
 
 # Pre-trained models
 
-We already provide the pre-trained models that are located in the folder `models`.
+The pre-trained models are provided in this repository under the folder `models`.
+
+# Cite
+
+Please citing the following publication: TODO
