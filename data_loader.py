@@ -11,7 +11,6 @@ class HDF5Dataset(data.Dataset):
         self.h5_path = h5_path
         self.h_file = h5py.File(h5_path, 'r')
         self.length = len(self.h_file['dataset']['id'])
-        self.w2v_cf = np.load('embedding_matrix_128_tracks.npy')
 
     def __getitem__(self, index):
         data = self.h_file['dataset']['data'][index]
@@ -32,12 +31,9 @@ class InMemoryDataset(data.Dataset):
             self.label = h_file['dataset']['label'][:]
             self.id = h_file['dataset']['id'][:]
             self.length = len(self.id)
-            self.w2v_cf = np.load('embedding_matrix_128_tracks.npy')
 
     def __getitem__(self, index):
         rnd_index = np.random.randint(0,1300-256)
-        #return self.data[index][rnd_index:(rnd_index+256)], self.label[index], self.id[index]
-        #return self.data[index][rnd_index:(rnd_index+256)], self.label[index], self.w2v_cf[self.id[index]+1], self.id[index]
         return self.data[index][rnd_index:(rnd_index+256)], self.label[index], self.cf_data[index], self.id[index]
 
     def __len__(self):

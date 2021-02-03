@@ -15,7 +15,7 @@ Generate the splits that will be used to train the models using the script: `scr
 
 **Step 3**
 
-Pre-train w2v using the script: `train_genre_w2v.py`.
+Pre-train w2v using the script: `train_genre_w2v.py`. Note that this step can be skipped since we already provide the `embedding_matrix_128.npy` file.
 
 **Step 4**
 
@@ -29,3 +29,6 @@ In order to train the models using contrastive learning run the script `single_t
 
 Finally, to train the model that combines CF and genre data using contrastive learning run the script `train.py` scpecifing the configuration `configs/contrastive_MF_gnr.json`.
 
+# Pre-trained models
+
+We already provide the pre-trained models that are located in the folder `models`.
