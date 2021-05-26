@@ -1,7 +1,7 @@
 ## Description
 
 
-This repository contains the code to reproduce the results of the paper entitled "Enriched Music Representations with Multiple Cross-modal Contrastive Learning", by Andres Ferraro, Xavier Favory, Konstantinos Drossos, Yuntae Kim, and Dmitry Bogdanov.
+This repository contains the code to reproduce the results of the paper entitled ["Enriched Music Representations with Multiple Cross-modal Contrastive Learning"](https://arxiv.org/abs/2104.00437), by Andres Ferraro, Xavier Favory, Konstantinos Drossos, Yuntae Kim, and Dmitry Bogdanov.
 
 # Demo
 
