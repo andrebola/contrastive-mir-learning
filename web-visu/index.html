@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Music Representations with Contrastive Learning - Demo</title>
+    <meta name="description" content="">
+    <meta name="theme-color" content="#000000">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #header {
+            top: 0;
+            height: 60px;
+            background-color: grey;
+            overflow-y: scroll;
+        }
+        button {
+            margin-top: 5px;
+            margin-left: 5px;
+        }
+        .as.button {
+            color: blue;
+        }
+        .af.button {
+            color: red;
+        }
+        .af2.button {
+            color: green;
+        }
+        #about {
+	    position: fixed; 
+	    font-size: 18px; 
+	    z-index: 10; 
+	    top: 60px; 
+	    right: 15px;
+	    /*background-color: #f44336;
+	    color: white;*/
+	    background-color: #555555;
+	    color: white;
+	    padding: 10px 20px;
+	    text-align: center;
+	    text-decoration: none;
+	    display: inline-block;
+	}
+	#about:hover, #about:active {
+            background-color: #333333;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="src/webAudioApiForDesigners.js"></script>
+    <script src="//unpkg.com/force-graph"></script>
+    <script src="//unpkg.com/d3-quadtree"></script>
+    <script src="//unpkg.com/d3-force"></script>
+    <!--<script src="../../dist/force-graph.js"></script>-->
+</head>
+
+<body>
+    <div id="header"></div>
+    <div id="graph"></div>
+
+    <script>
+        $( document ).ready(function() {
+
+            // create button dynamically
+            var header_div = $('#header'); 
+            $.getJSON("clustering_info.json", function(graph) {
+                }).then(data => {
+                    var datasets = data.datasets;
+                    var displayNames= data.datasets_names;
+                    var features = data.features;
+                    datasets.forEach(dataset => {
+                        features.forEach(feature => {
+				header_div.append(`<button class='button' id='${dataset}-${feature}'>${displayNames[dataset]}</button>`)
+                        });
+                    });
+                    $('.button').click(function() {
+                        chooseQuery($(this).attr('id'));
+                    })
+                });
+
+            const NODE_R = 30;
+            const NODE_MIN_R = 0.3;
+            const NODE_MAX_R = 2;
+
+            var elem = document.getElementById('graph');
+
+            // Audio
+            var context = initializeNewWebAudioContext();
+            var playingSound; // keep track of playing sound to stop it
+
+            function playSound(d) {
+                // load and play sound
+                context.loadSound(d.preview, '0');
+                playingSound = context.playSound('0');
+            }
+
+            function stopSound() {
+                // stop playing sound
+                if (playingSound) {
+                    playingSound.pause();
+                }
+            }
+
+            function onNodeHover(node) {
+                if (node) {
+                    elem.style.cursor = 'pointer';
+                    stopSound();
+                    playSound(node);
+                } else {
+                    elem.style.cursor = null;
+                    stopSound();
+                }
+            }
+            
+            var Graph = ForceGraph()(elem);
+            Graph.backgroundColor('#101020')
+		.nodeRelSize(NODE_R)
+			.nodeVal(function(d){return NODE_MIN_R + d.group_centrality*NODE_MAX_R})
+                //.d3Force('center', null)
+                //.d3Force('charge', null)
+                //.d3Force('link', null)
+                .nodeLabel(
+                    node => `${node.track_name} <br> ${node.artist_name} <br> ${node.track_labels}`
+                    )
+                .nodeAutoColorBy('unseen')
+			.nodeColor(d =>{ 
+			if (d.unseen=="random"){ 
+				return '#B2DF8A'; 
+			} else if(d.unseen == 'train'){
+				return '#A6CEE3';
+			} else if(d.unseen == 'unseen'){
+				return '#1a5276';
+			}})
+			.linkColor(link => {if (link.strength >0.99) {return 'rgba(110,90,50,0.6)'; } else {return 'rgba(255,255,255,0.1)';}})
+                .onNodeHover(node => onNodeHover(node))
+                .d3AlphaDecay(0.1)
+                .d3VelocityDecay(0.09)
+                .cooldownTime(15000)
+
+            function chooseQuery(name) {
+                console.log(name);
+                
+                $.getJSON("json/"+ name +".json", function(graph) {
+                }).then(data => {
+                    //var data = JSON.parse(data);
+	            var fc = d3.forceCollide(Graph.nodeRelSize()*NODE_MAX_R*3/4);
+			//fc.strength(function (d) {return weightScale(10+d.strength)});
+		    var nbody = d3.forceManyBody();
+			nbody.strength(-30);
+			var links= data.links.forEach(link => {
+				link.source=parseInt(link.source);
+				link.target=parseInt(link.target);
+			});
+                    var nodes = data.nodes;
+                    Graph
+                        .d3Force('collide', fc)
+                        .d3Force('force', nbody)
+				.d3Force('link', d3.forceLink(links).strength (function (d) {return d.strength}))
+                        .d3Force('box', () => {
+                        const SQUARE_HALF_SIDE = Graph.nodeRelSize() * 800 * 0.5;
+                        nodes.forEach(node => {
+                            const x = node.x || 1, y = node.y || 1;
+                            // bounce on box walls
+                            if (Math.abs(x) > SQUARE_HALF_SIDE) { node.vx *= 0; }
+                            if (Math.abs(y) > SQUARE_HALF_SIDE) { node.vy *= 0; }
+                        });
+                        })
+                        .zoom(0.2)
+                        .graphData(data);
+                });
+            }
+        });
+    </script>
+    <div><a id="about" href="https://github.com/andrebola/contrastive-mir-learning" target="_blank">About</a></div>
+</body>
+
+</html>
